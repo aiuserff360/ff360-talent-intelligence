@@ -10,7 +10,7 @@ npm run build
 
 ## What it does
 
-- **Filters**: function (8), location (8 Indian cities), industry (7) and sub-industry (29), compensation type (annual CTC INR, monthly CTC, annual fixed pay, annual CTC USD), experience level.
+- **Filters**: function (8), location (8 Indian cities), industry (7) and sub-industry (29), compensation type (annual CTC, monthly CTC, annual fixed pay), currency (13: INR, USD, EUR, GBP, JPY, CHF, SGD, AUD, CAD, AED, CNY, HKD, SEK), experience level.
 - **Role Library**: market low / reference / high per role with demand signal; KPI tiles; compensation trend by experience band; compensation by role family; market positioning curve and recommended hiring range for the selected role.
 - **Role profile drawer**: level, family, experience, market tiles, hiring range; tabs for Role Details, Compensation Insights (how the number is built, monthly / fixed / USD, offer guidance, sources), Market Comparables and JD Preview; View Full JD, Generate JD, Edit JD (saved per role in the browser) and Export JD (Markdown + text).
 - **Dashboard**: median reference by city, by industry and by sub-industry within the selected industry, experience curve, roles in demand, family × city heatmap, family table. All scoped to the selected function.
@@ -20,6 +20,8 @@ npm run build
 ## Data
 
 Roles live in one file per function (`src/data/roles-ai.js`, `roles-ops.js`, `roles-hr.js`, `roles-it.js`, `roles-mfg.js`, `roles-quality.js`, `roles-rd.js`, and the Regulatory Affairs set in `roles.js`, which also exports the combined catalogue). Every role stores a market low / reference / high in ₹ lakh annual CTC for Bengaluru at the function's reference sub-industry (`src/data/functions.js`: AI & Data at SaaS / Product; Operations, HR and IT at IT services & consulting; Manufacturing, Quality, Regulatory Affairs and R&D at Medical devices) and lists the public anchors it was derived from. `src/data/industries.js` holds the industry → sub-industry taxonomy with one common pay index; `src/data/market.js` holds the location indices and default settings. `src/data/sources.js` lists every source (Glassdoor, Payscale, Indeed, ERI SalaryExpert, Salary.com, Michael Page, Pharmaduniya, Cliniminds, Naukri, LinkedIn, ECB) with URLs and the methodology.
+
+Currencies: every figure is one rupee amount converted through a single ECB reference-rate table (`src/data/currencies.js`, 24 September 2026, the same table the GCC Business Case Builder uses), so the dollar, euro and yen views are always equivalent. Rates can be overridden in Settings.
 
 Benchmark = stored reference × location index × (selected sub-industry index ÷ the function's reference sub-industry index); recommended hiring range = 90–120% of the reference. Data reviewed in September 2026.
 

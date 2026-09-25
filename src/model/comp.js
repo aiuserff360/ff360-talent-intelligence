@@ -3,6 +3,8 @@ import { ROLES, LEVELS, rolesFor } from '../data/roles.js';
 import { findFunction } from '../data/functions.js';
 import { findSub, groupOfSub, INDUSTRY_GROUPS } from '../data/industries.js';
 import { LOCATIONS, COMP_TYPES, EXPERIENCE_LEVELS } from '../data/market.js';
+import { CURRENCIES, findCurrency, fxRate } from '../data/currencies.js';
+export { CURRENCIES, findCurrency, fxRate };
 
 export const findLocation = (key) => LOCATIONS.find((l) => l.key === key) || LOCATIONS[0];
 export const findIndustry = (key) => findSub(key);          // sub-industry (carries group / groupName)
@@ -10,26 +12,48 @@ export const findGroupOf = (key) => groupOfSub(key);         // industry group o
 export const findCompType = (key) => COMP_TYPES.find((c) => c.key === key) || COMP_TYPES[0];
 export { INDUSTRY_GROUPS };
 
-// Convert an annual-CTC lakh figure to the chosen display type. Returns a plain number in that type's unit.
-export function toType(lakh, typeKey, settings) {
-  const v = Number(lakh) || 0;
-  switch (typeKey) {
-    case 'ctc-monthly': return (v * 100000) / 12;                    // ₹ per month
-    case 'fixed-annual': return v * (1 - (Number(settings.variablePayPct) || 0) / 100); // ₹ lakh fixed
-    case 'ctc-usd': return (v * 100000) / (Number(settings.fxInrPerUsd) || 96);          // USD per year
-    default: return v;                                                // ₹ lakh
-  }
+// Convert an annual-CTC lakh figure (INR) to the chosen basis and currency. Returns a plain number:
+// INR annual bases stay in lakh, INR monthly is rupees, every other currency is whole units of that currency.
+export function toType(lakh, typeKey, settings, currency = 'INR') {
+  const ct = findCompType(typeKey);
+  let rupees = (Number(lakh) || 0) * 100000;
+  if (ct.fixed) rupees *= 1 - (Number(settings.variablePayPct) || 0) / 100;
+  if (ct.period === 'month') rupees /= 12;
+  if (currency === 'INR') return ct.period === 'month' ? rupees : rupees / 100000;
+  return rupees * fxRate('INR', currency, settings.fxPerUsd);
 }
 
-export function fmt(value, typeKey, opts = {}) {
+// Format a converted value for the given filters (compType + currency).
+export function fmt(value, filters, opts = {}) {
   const v = Number(value) || 0;
-  const short = opts.short;
-  if (typeKey === 'ctc-monthly') return `₹${Math.round(v).toLocaleString('en-IN')}`;
-  if (typeKey === 'ctc-usd') return `$${Math.round(v).toLocaleString('en-US')}`;
-  return `₹${v.toFixed(1)}${short ? 'L' : ' L'}`;
+  const cur = findCurrency(filters.currency);
+  const ct = findCompType(filters.compType);
+  if (cur.code === 'INR') {
+    if (ct.period === 'month') return `₹${Math.round(v).toLocaleString('en-IN')}`;
+    return `₹${v.toFixed(1)}${opts.short ? 'L' : ' L'}`;
+  }
+  const sep = /[A-Za-z]$/.test(cur.symbol) ? ' ' : '';
+  return `${cur.symbol}${sep}${Math.round(v).toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
 }
 
-export function unitLabel(typeKey) { return findCompType(typeKey).unit; }
+// Compact axis labels for charts.
+export function shortFmt(filters) {
+  const cur = findCurrency(filters.currency); const ct = findCompType(filters.compType);
+  const k = (v, sym) => { const s = /[A-Za-z]$/.test(sym) ? `${sym} ` : sym; return Math.abs(v) >= 1e6 ? `${s}${(v / 1e6).toFixed(1)}M` : Math.abs(v) >= 1e3 ? `${s}${(v / 1e3).toFixed(0)}K` : `${s}${Math.round(v)}`; };
+  if (cur.code === 'INR') return ct.period === 'month' ? (v) => k(v, '₹') : (v) => v.toFixed(v >= 10 ? 0 : 1);
+  return (v) => k(v, cur.symbol);
+}
+
+export function unitLabel(filters) {
+  const cur = findCurrency(filters.currency); const ct = findCompType(filters.compType);
+  const unit = cur.code === 'INR' ? (ct.period === 'month' ? '₹' : '₹ Lakh') : cur.code;
+  return `${unit} / ${ct.period}${ct.fixed ? ' (fixed)' : ''}`;
+}
+
+// The same rupee reference expressed in every currency: proof that the views are consistent.
+export function inAllCurrencies(lakh, filters, settings) {
+  return CURRENCIES.map((c) => ({ currency: c, value: toType(lakh, filters.compType, settings, c.code), label: fmt(toType(lakh, filters.compType, settings, c.code), { ...filters, currency: c.code }) }));
+}
 
 // Benchmark for a role under the chosen location / sub-industry / compensation type.
 // Each function's stored benchmarks are calibrated to its reference sub-industry (functions.js → refSub);
@@ -44,11 +68,11 @@ export function benchmark(role, filters, settings) {
   const k = loc.index * fnIndex;
   const lakh = { low: role.comp.low * k, ref: role.comp.ref * k, high: role.comp.high * k };
   const hire = { low: lakh.ref * (Number(settings.hiringLowPct) || 90) / 100, high: lakh.ref * (Number(settings.hiringHighPct) || 120) / 100 };
-  const t = filters.compType;
+  const t = filters.compType; const c = filters.currency || 'INR';
   return {
     lakh, hireLakh: hire,
-    low: toType(lakh.low, t, settings), ref: toType(lakh.ref, t, settings), high: toType(lakh.high, t, settings),
-    hireLow: toType(hire.low, t, settings), hireHigh: toType(hire.high, t, settings),
+    low: toType(lakh.low, t, settings, c), ref: toType(lakh.ref, t, settings, c), high: toType(lakh.high, t, settings, c),
+    hireLow: toType(hire.low, t, settings, c), hireHigh: toType(hire.high, t, settings, c),
     index: k, fnIndex, location: loc, industry: sub, group, refSub, fn,
   };
 }

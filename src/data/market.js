@@ -14,11 +14,11 @@ export const LOCATIONS = [
   { key: 'kolkata', name: 'Kolkata', index: 0.84, tier: 2, cluster: 'Smaller life-sciences base; limited device RA talent', note: 'Tier-2 differential; limited senior RA supply.' },
 ];
 
+// Pay basis. Currency is chosen separately (currencies.js); every basis converts through the same rate table.
 export const COMP_TYPES = [
-  { key: 'ctc-annual', name: 'Annual CTC (INR)', unit: '₹ Lakh / year' },
-  { key: 'ctc-monthly', name: 'Monthly CTC (INR)', unit: '₹ / month' },
-  { key: 'fixed-annual', name: 'Annual fixed pay (INR)', unit: '₹ Lakh / year' },
-  { key: 'ctc-usd', name: 'Annual CTC (USD)', unit: 'USD / year' },
+  { key: 'ctc-annual', name: 'Annual CTC', period: 'year' },
+  { key: 'ctc-monthly', name: 'Monthly CTC', period: 'month' },
+  { key: 'fixed-annual', name: 'Annual fixed pay', period: 'year', fixed: true },
 ];
 
 export const EXPERIENCE_LEVELS = [
@@ -31,8 +31,10 @@ export const EXPERIENCE_LEVELS = [
 ];
 
 // Default settings. Variable pay share and hiring-range multipliers are editable on the Settings screen.
+import { FX } from './currencies.js';
+
 export const DEFAULT_SETTINGS = {
-  fxInrPerUsd: 95.96,           // ECB reference rate, 24 Sep 2026 (converted to per-USD)
+  fxPerUsd: { ...FX.perUsd },     // ECB reference rates, 24 Sep 2026, per USD; editable in Settings
   variablePayPct: 12,            // typical variable component in Indian life-sciences CTC (10–15%)
   hiringLowPct: 90,              // recommended hiring range = 90% to 120% of market reference
   hiringHighPct: 120,

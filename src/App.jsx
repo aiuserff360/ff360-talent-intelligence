@@ -7,8 +7,10 @@ import { DEFAULT_SETTINGS } from './data/market.js';
 import { rolesFor } from './data/roles.js';
 import { findFunction } from './data/functions.js';
 import { findSub } from './data/industries.js';
+import { CURRENCIES } from './data/currencies.js';
+const findCurrency = (c) => CURRENCIES.find((x) => x.code === c);
 
-const DEFAULT_FILTERS = { fn: 'ra', location: 'bengaluru', industry: 'medical-devices', compType: 'ctc-annual', experience: 'all' };
+const DEFAULT_FILTERS = { fn: 'ra', location: 'bengaluru', industry: 'medical-devices', compType: 'ctc-annual', currency: 'INR', experience: 'all' };
 const pageFromHash = () => { const k = window.location.hash.replace(/^#\/?/, '').split('/')[0]; return NAV.some(([n]) => n === k) ? k : 'library'; };
 
 export default function App() {
@@ -30,7 +32,9 @@ export default function App() {
   const toast = useCallback((t) => setToastText(t), []);
   // Normalise stored filters: unknown function / sub-industry keys fall back to defaults.
   const fx = { ...DEFAULT_FILTERS, ...filters }; fx.fn = findFunction(fx.fn).key; fx.industry = findSub(fx.industry).key;
-  const st = { ...DEFAULT_SETTINGS, ...settings };
+  if (fx.compType === 'ctc-usd') { fx.compType = 'ctc-annual'; fx.currency = 'USD'; }   // pre-currency releases stored USD as a comp type
+  if (!findCurrency(fx.currency)) fx.currency = 'INR';
+  const st = { ...DEFAULT_SETTINGS, ...settings, fxPerUsd: { ...DEFAULT_SETTINGS.fxPerUsd, ...(settings.fxPerUsd || {}) } };
   const common = { filters: fx, setFilter, settings: st, setSettings, jdEdits, setJdEdits, selectedId, setSelectedId, toast, go };
 
   return (

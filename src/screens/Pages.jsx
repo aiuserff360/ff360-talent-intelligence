@@ -8,10 +8,10 @@ import { FUNCTIONS, findFunction } from '../data/functions.js';
 import { INDUSTRY_GROUPS, SUB_INDUSTRIES, findSub, groupOfSub } from '../data/industries.js';
 import { LOCATIONS, COMP_TYPES, DEFAULT_SETTINGS } from '../data/market.js';
 import { SOURCES, METHODOLOGY } from '../data/sources.js';
-import { benchmark, byExperience, byFamily, bySubIndustry, byGroup, fmt, unitLabel, findLocation, summary, median } from '../model/comp.js';
+import { benchmark, byExperience, byFamily, bySubIndustry, byGroup, fmt, unitLabel, shortFmt, findLocation, summary, median, toType } from '../model/comp.js';
+import { CURRENCIES, FX, findCurrency } from '../data/currencies.js';
 import { buildJd, jdToMarkdown, download } from '../model/jd.js';
 
-const shortFmt = (t) => (v) => (t === 'ctc-monthly' ? `₹${(v / 1000).toFixed(0)}K` : t === 'ctc-usd' ? `$${(v / 1000).toFixed(0)}K` : v.toFixed(v >= 10 ? 0 : 1));
 
 export function Home({ go, settings, setFilter }) {
   const open = (fn) => { setFilter('fn', fn); go('library'); };
@@ -28,11 +28,11 @@ export function Home({ go, settings, setFilter }) {
           <div className="stat"><b>{ROLES.length}</b><span>Roles with JDs across {FUNCTIONS.length} functions</span></div>
           <div className="stat"><b>{LOCATIONS.length}</b><span>Indian cities benchmarked</span></div>
           <div className="stat"><b>{SUB_INDUSTRIES.length}</b><span>Sub-industries in {INDUSTRY_GROUPS.length} industries</span></div>
-          <div className="stat"><b>{Object.keys(SOURCES).length}</b><span>Public sources · {settings.dataAsOf}</span></div>
+          <div className="stat"><b>{CURRENCIES.length}</b><span>Currencies on one ECB rate table</span></div>
         </div>
       </div>
       <div className="steps">
-        <div className="step"><b>1</b><h4>Choose the market</h4><p>Function, location, industry, sub-industry, compensation type and experience level drive every figure.</p></div>
+        <div className="step"><b>1</b><h4>Choose the market</h4><p>Function, location, industry, sub-industry, compensation type, currency and experience level drive every figure.</p></div>
         <div className="step"><b>2</b><h4>Explore the role library</h4><p>Market low, reference and high per role with demand signals and role families.</p></div>
         <div className="step"><b>3</b><h4>Open the role profile</h4><p>Purpose, responsibilities, skills, domain knowledge, comparables and a recommended hiring range.</p></div>
         <div className="step"><b>4</b><h4>Generate the JD</h4><p>View, edit and export a market-aligned job description for recruiters and hiring managers.</p></div>
@@ -56,7 +56,7 @@ export function Home({ go, settings, setFilter }) {
 }
 
 export function Dashboard({ filters, settings, go, setSelectedId }) {
-  const t = filters.compType; const f = (v) => fmt(v, t, { short: true }); const short = shortFmt(t);
+  const t = filters; const f = (v) => fmt(v, filters, { short: true }); const short = shortFmt(filters);
   const fn = findFunction(filters.fn); const pool = rolesFor(fn.key); const fams = familiesFor(fn.key);
   const all = summary(pool, filters, settings);
   const byCity = LOCATIONS.map((l) => ({ label: l.name, value: median(pool.map((r) => benchmark(r, { ...filters, location: l.key }, settings).ref)) })).sort((a, b) => b.value - a.value);
@@ -106,7 +106,7 @@ export function Dashboard({ filters, settings, go, setSelectedId }) {
 
 export function Reports({ filters, settings, jdEdits, toast }) {
   const [type, setType] = useState('benchmark');
-  const t = filters.compType; const f = (v) => fmt(v, t, { short: true });
+  const t = filters; const f = (v) => fmt(v, filters, { short: true });
   const fn = findFunction(filters.fn); const pool = rolesFor(fn.key);
   const loc = findLocation(filters.location); const ind = findSub(filters.industry); const grp = groupOfSub(filters.industry);
   const round = (v) => (typeof v === 'number' ? Math.round(v * 100) / 100 : v);
@@ -176,12 +176,12 @@ export function Settings({ settings, setSettings, filters, setFilter, jdEdits, s
         <Panel title="Display defaults">
           <Field label="Default function"><select value={filters.fn} onChange={(e) => setFilter('fn', e.target.value)}>{FUNCTIONS.map((f) => <option key={f.key} value={f.key}>{f.name}</option>)}</select></Field>
           <Field label="Default compensation type"><select value={filters.compType} onChange={(e) => setFilter('compType', e.target.value)}>{COMP_TYPES.map((c) => <option key={c.key} value={c.key}>{c.name}</option>)}</select></Field>
+          <Field label="Default currency"><select value={filters.currency} onChange={(e) => setFilter('currency', e.target.value)}>{CURRENCIES.map((c) => <option key={c.code} value={c.code}>{c.code} · {c.name}</option>)}</select></Field>
           <Field label="Default location"><select value={filters.location} onChange={(e) => setFilter('location', e.target.value)}>{LOCATIONS.map((l) => <option key={l.key} value={l.key}>{l.name}</option>)}</select></Field>
           <Field label="Default industry"><select value={grp.key} onChange={(e) => setFilter('industry', INDUSTRY_GROUPS.find((g) => g.key === e.target.value).subs[0].key)}>{INDUSTRY_GROUPS.map((g) => <option key={g.key} value={g.key}>{g.name}</option>)}</select></Field>
           <Field label="Default sub-industry"><select value={filters.industry} onChange={(e) => setFilter('industry', e.target.value)}>{grp.subs.map((s) => <option key={s.key} value={s.key}>{s.name}</option>)}</select></Field>
         </Panel>
         <Panel title="Conversion factors">
-          <Field label="INR per USD" hint="ECB reference rate, 24 September 2026"><input type="number" step="0.01" value={settings.fxInrPerUsd} onChange={set('fxInrPerUsd')} /></Field>
           <Field label="Variable pay share of CTC (%)" hint="Removed when showing annual fixed pay"><input type="number" step="1" value={settings.variablePayPct} onChange={set('variablePayPct')} /></Field>
           <Field label="Data as of"><input value={settings.dataAsOf} onChange={set('dataAsOf', String)} /></Field>
         </Panel>
@@ -191,6 +191,11 @@ export function Settings({ settings, setSettings, filters, setFilter, jdEdits, s
           <div className="inline" style={{ marginTop: 10 }}><button type="button" className="btn" onClick={() => { setSettings({ ...DEFAULT_SETTINGS }); toast('Settings reset'); }}><Icon name="reset" />Reset to defaults</button><button type="button" className="btn" onClick={() => { setJdEdits({}); toast('All JD edits cleared'); }}><Icon name="trash" />Clear JD edits ({Object.keys(jdEdits).length})</button></div>
         </Panel>
       </div>
+      <Panel title="Exchange rates" subtitle={`${FX.source} · ${FX.asOf}. Every currency view converts the same rupee figure through this one table, so dollars, euros and yen always agree. Edit a rate to override it.`} tight actions={<button type="button" className="btn" onClick={() => { setSettings({ ...settings, fxPerUsd: { ...FX.perUsd } }); toast('Rates reset to ECB reference'); }}><Icon name="reset" />Reset to ECB</button>}>
+        <div className="table-wrap"><table className="fx-table"><thead><tr><th>Currency</th><th className="num">Units per USD</th><th className="num">₹ per unit</th><th className="num">₹10 L equals</th><th>Where it applies</th></tr></thead><tbody>
+          {CURRENCIES.map((c) => { const per = settings.fxPerUsd[c.code] || FX.perUsd[c.code]; const inr = settings.fxPerUsd.INR / per; return <tr key={c.code}><td><span className="name">{c.code}</span> <span className="muted">{c.name}</span></td><td className="num">{c.code === 'USD' ? '1' : <input type="number" step="0.0001" value={per} onChange={(e) => setSettings({ ...settings, fxPerUsd: { ...settings.fxPerUsd, [c.code]: Number(e.target.value) || per } })} style={{ width: 110, textAlign: 'right' }} />}</td><td className="num">{inr.toFixed(inr >= 10 ? 2 : 4)}</td><td className="num">{fmt(toType(10, 'ctc-annual', settings, c.code), { compType: 'ctc-annual', currency: c.code })}</td><td className="muted" style={{ fontSize: 12 }}>{c.note}</td></tr>; })}
+        </tbody></table></div>
+      </Panel>
       <Panel title="Functions" subtitle="Every function stores its benchmarks at a reference sub-industry; other sub-industries are rescaled from it">
         <div className="fn-grid">{FUNCTIONS.map((fn) => <div key={fn.key} className="fn-card"><b><Icon name={fn.icon} size={14} /> {fn.name}</b><span>{rolesFor(fn.key).length} roles · {familiesFor(fn.key).length} families · reference {findSub(fn.refSub).name}</span></div>)}</div>
       </Panel>

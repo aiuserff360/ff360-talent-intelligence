@@ -13,18 +13,23 @@ export function Legend({ series }) { return series.length < 2 ? null : <div clas
 export function GroupedColumns({ data, series, format, height = 240, yLabel, xLabel }) {
   const [ref, width] = useSize(); const [tip, setTip] = useState(null);
   const all = data.flatMap((d) => d.values); const { max, step } = nice(Math.max(...all, 0));
-  const m = { top: 22, right: 10, bottom: xLabel ? 46 : 34, left: 44 };
+  const ticks = []; for (let v = 0; v <= max + 1e-9; v += step) ticks.push(v);
+  const tickLen = Math.max(...ticks.map((t) => String(format(t)).length), 1);
+  const m = { top: 22, right: 10, bottom: xLabel ? 46 : 34, left: Math.max(44, tickLen * 6.5 + 14) };
   const plotH = height - m.top - m.bottom; const plotW = Math.max(width - m.left - m.right, 10);
   const band = plotW / data.length; const gw = band * 0.7; const bw = Math.min(18, gw / series.length);
+  // Value labels only fit when every bar is wider than its label; otherwise label the reference (middle) series alone.
+  const maxLen = Math.max(...all.map((v) => String(format(v)).length), 1); const labelsFit = bw >= maxLen * 6;
+  const refSeries = Math.floor(series.length / 2);
   const xOf = (i) => m.left + band * (i + 0.5); const yOf = (v) => m.top + plotH - (v / max) * plotH;
-  const ticks = []; for (let v = 0; v <= max + 1e-9; v += step) ticks.push(v);
   return (
     <div className="chart" ref={ref}>
       {width > 0 && (
         <svg width={width} height={height}>
-          {ticks.map((t) => <g key={t}><line className="grid-line" x1={m.left} x2={width - m.right} y1={yOf(t)} y2={yOf(t)} /><text className="axis-text" x={m.left - 6} y={yOf(t) + 3.5} textAnchor="end">{t}</text></g>)}
+          {ticks.map((t) => <g key={t}><line className="grid-line" x1={m.left} x2={width - m.right} y1={yOf(t)} y2={yOf(t)} /><text className="axis-text" x={m.left - 6} y={yOf(t) + 3.5} textAnchor="end">{format(t)}</text></g>)}
           {yLabel && <text className="axis-text" transform={`translate(11,${m.top + plotH / 2}) rotate(-90)`} textAnchor="middle">{yLabel}</text>}
-          {data.map((d, i) => d.values.map((v, s) => { const x = xOf(i) - (series.length * bw) / 2 + s * bw; return <g key={s}><path d={top(x + 1, yOf(v), bw - 2, plotH - (yOf(v) - m.top))} fill={series[s].color} /><text className="value-label" x={x + bw / 2} y={yOf(v) - 5} textAnchor="middle">{format(v)}</text></g>; }))}
+          {data.map((d, i) => d.values.map((v, s) => { const x = xOf(i) - (series.length * bw) / 2 + s * bw; return <g key={s}><path d={top(x + 1, yOf(v), bw - 2, plotH - (yOf(v) - m.top))} fill={series[s].color} />{labelsFit && <text className="value-label" x={x + bw / 2} y={yOf(v) - 5} textAnchor="middle">{format(v)}</text>}</g>; }))}
+          {!labelsFit && data.map((d, i) => <text key={`v${i}`} className="value-label" x={xOf(i)} y={yOf(Math.max(...d.values)) - 5} textAnchor="middle">{format(d.values[refSeries])}</text>)}
           {data.map((d, i) => <rect key={i} className="hit" x={xOf(i) - band / 2} y={m.top} width={band} height={plotH} onMouseEnter={() => setTip({ x: xOf(i), y: yOf(Math.max(...d.values)), title: d.label, rows: series.map((s, k) => ({ name: s.name, color: s.color, value: format(d.values[k]) })) })} onMouseLeave={() => setTip(null)} />)}
           {data.map((d, i) => <text key={`l${i}`} className="axis-text" x={xOf(i)} y={height - m.bottom + 16} textAnchor="middle" style={{ fill: '#44546a', fontWeight: 600 }}>{d.label}</text>)}
           {xLabel && <text className="axis-text" x={m.left + plotW / 2} y={height - 6} textAnchor="middle">{xLabel}</text>}

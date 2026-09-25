@@ -4,6 +4,7 @@ import { Select } from './ui.jsx';
 import { FUNCTIONS } from '../data/functions.js';
 import { INDUSTRY_GROUPS, groupOfSub } from '../data/industries.js';
 import { LOCATIONS, COMP_TYPES, EXPERIENCE_LEVELS } from '../data/market.js';
+import { CURRENCIES } from '../data/currencies.js';
 
 export const NAV = [['home', 'Home', 'home'], ['dashboard', 'Dashboard', 'chart'], ['library', 'Role Library', 'library'], ['reports', 'Reports', 'doc'], ['settings', 'Settings', 'gear']];
 
@@ -34,6 +35,7 @@ export function Filters({ filters, setFilter }) {
       <Select label="Industry" value={group.key} onChange={(v) => setFilter('industry', INDUSTRY_GROUPS.find((g) => g.key === v).subs[0].key)} options={INDUSTRY_GROUPS.map((g) => ({ value: g.key, label: g.name }))} />
       <Select label="Sub-industry" value={filters.industry} onChange={(v) => setFilter('industry', v)} options={group.subs.map((s) => ({ value: s.key, label: s.name }))} />
       <Select label="Compensation Type" value={filters.compType} onChange={(v) => setFilter('compType', v)} options={COMP_TYPES.map((c) => ({ value: c.key, label: c.name }))} />
+      <Select label="Currency" value={filters.currency} onChange={(v) => setFilter('currency', v)} options={CURRENCIES.map((c) => ({ value: c.code, label: `${c.code} · ${c.name}` }))} />
       <Select label="Experience Level" value={filters.experience} onChange={(v) => setFilter('experience', v)} options={EXPERIENCE_LEVELS.map((e) => ({ value: e.key, label: e.name }))} />
     </div>
   );

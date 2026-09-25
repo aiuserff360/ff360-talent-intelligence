@@ -6,7 +6,7 @@ import { FunctionRail } from '../components/Shell.jsx';
 import { ROLES, LEVELS, rolesFor } from '../data/roles.js';
 import { findFunction } from '../data/functions.js';
 import { SOURCES } from '../data/sources.js';
-import { benchmark, filterRoles, summary, byExperience, byFamily, fmt, unitLabel, comparables } from '../model/comp.js';
+import { benchmark, filterRoles, summary, byExperience, byFamily, fmt, unitLabel, shortFmt, comparables, inAllCurrencies, findCurrency } from '../model/comp.js';
 import { buildJd, jdToText, jdToMarkdown, download, slug } from '../model/jd.js';
 
 const exp = (r) => `${r.expMin} – ${r.expMax >= 25 ? '' : r.expMax}${r.expMax >= 25 ? '15+' : ''}`.replace('15 – 15+', '15+');
@@ -18,11 +18,12 @@ export function RoleLibrary({ filters, setFilter, settings, selectedId, setSelec
   const selected = pool.find((r) => r.id === selectedId) || roles[0] || pool[0];
   const sm = summary(roles, filters, settings);
   const bmSel = benchmark(selected, filters, settings);
-  const t = filters.compType;
-  const f = (v) => fmt(v, t, { short: true });
+  const t = filters;
+  const f = (v) => fmt(v, filters, { short: true });
   const trend = byExperience(filters, settings);
   const fam = byFamily(filters, settings);
-  const short = (v) => (t === 'ctc-monthly' ? `₹${(v / 1000).toFixed(0)}K` : t === 'ctc-usd' ? `$${(v / 1000).toFixed(0)}K` : v.toFixed(v >= 10 ? 0 : 1));
+  const short = shortFmt(filters);
+  const fc = (v) => { const x = f(v); return x.length > 9 ? short(v) : x; };   // compact marker labels for long currency strings
 
   return (
     <div className="workspace">
@@ -39,7 +40,7 @@ export function RoleLibrary({ filters, setFilter, settings, selectedId, setSelec
           <div className="table-wrap">
             <table className="library-table">
               <thead>
-                <tr><th rowSpan={2}>Role Title</th><th rowSpan={2}>Role Family</th><th rowSpan={2} className="num">Experience (Years)</th><th colSpan={3} className="group">Compensation ({unitLabel(t)})</th><th rowSpan={2}>Demand</th><th rowSpan={2} /></tr>
+                <tr><th rowSpan={2}>Role Title</th><th rowSpan={2}>Role Family</th><th rowSpan={2} className="num">Exp. (Years)</th><th colSpan={3} className="group">Compensation ({unitLabel(t)})</th><th rowSpan={2}>Demand</th></tr>
                 <tr><th className="num">Market Low</th><th className="num">Market Reference</th><th className="num">Market High</th></tr>
               </thead>
               <tbody>
@@ -52,10 +53,9 @@ export function RoleLibrary({ filters, setFilter, settings, selectedId, setSelec
                     <td className="num ref">{f(bm.ref)}</td>
                     <td className="num">{f(bm.high)}</td>
                     <td><DemandBars level={r.demand} /></td>
-                    <td className="nowrap"><button type="button" className="icon-btn" title="Open role profile" onClick={(e) => { e.stopPropagation(); setSelectedId(r.id); }}><Icon name="arrowRight" size={16} /></button></td>
                   </tr>
                 ); })}
-                {!roles.length && <tr><td colSpan={8} className="empty">No roles match the selected experience level.</td></tr>}
+                {!roles.length && <tr><td colSpan={7} className="empty">No roles match the selected experience level.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -66,8 +66,8 @@ export function RoleLibrary({ filters, setFilter, settings, selectedId, setSelec
             <GroupedColumns data={trend.filter((b) => b.count).map((b) => ({ label: b.band.replace(' years', '').replace(' – ', '–'), values: [b.low, b.ref, b.high] }))} series={[{ name: 'Market Low', color: '#86b6ef' }, { name: 'Market Reference', color: '#2a78d6' }, { name: 'Market High', color: '#104281' }]} format={short} yLabel={unitLabel(t)} height={250} xLabel="Experience level (years)" />
           </Panel>
           <Panel title="Market Positioning" subtitle={selected.title}>
-            <BellCurve low={bmSel.low} ref={bmSel.ref} high={bmSel.high} format={f} height={170} />
-            <RangeStrip low={bmSel.low} ref={bmSel.ref} high={bmSel.high} hireLow={bmSel.hireLow} hireHigh={bmSel.hireHigh} format={f} />
+            <BellCurve low={bmSel.low} ref={bmSel.ref} high={bmSel.high} format={fc} height={170} />
+            <RangeStrip low={bmSel.low} ref={bmSel.ref} high={bmSel.high} hireLow={bmSel.hireLow} hireHigh={bmSel.hireHigh} format={fc} />
           </Panel>
           <Panel title="Compensation by Role Family" subtitle="Median market reference across the family's roles" className="span">
             <HBars data={fam.map((x) => ({ label: x.family, value: x.ref }))} format={f} rowH={24} />
@@ -83,12 +83,13 @@ export function RoleLibrary({ filters, setFilter, settings, selectedId, setSelec
 function RoleDrawer({ role, bm, fnDef, filters, settings, jdEdits, setJdEdits, toast, onSelect }) {
   const [tab, setTab] = useState('details');
   const [modal, setModal] = useState(null); // 'view' | 'edit'
-  const t = filters.compType;
-  const f = (v) => fmt(v, t, { short: true });
+  const f = (v) => fmt(v, filters, { short: true });
+  const cur = findCurrency(filters.currency);
   const edits = jdEdits[role.id] || {};
   const jd = buildJd(role, bm, filters, settings, edits);
   const comps = comparables(role, filters, settings);
-  const monthly = (bm.lakh.ref * 100000) / 12; const usd = (bm.lakh.ref * 100000) / settings.fxInrPerUsd; const fixed = bm.lakh.ref * (1 - settings.variablePayPct / 100);
+  const monthly = (bm.lakh.ref * 100000) / 12; const fixed = bm.lakh.ref * (1 - settings.variablePayPct / 100);
+  const others = inAllCurrencies(bm.lakh.ref, filters, settings).filter((x) => x.currency.code !== filters.currency);
 
   const exportJd = () => { download(`${slug(role.title)}-jd.md`, jdToMarkdown(jd), 'text/markdown'); download(`${slug(role.title)}-jd.txt`, jdToText(jd)); toast('JD exported as Markdown and text'); };
   const copyJd = async () => { try { await navigator.clipboard.writeText(jdToText(jd)); toast('JD copied to clipboard'); } catch { toast('Copy not available; use Export'); } };
@@ -126,9 +127,12 @@ function RoleDrawer({ role, bm, fnDef, filters, settings, jdEdits, setJdEdits, t
               <div className="tile"><span>Annual CTC (reference)</span><b>₹{bm.lakh.ref.toFixed(1)} L</b></div>
               <div className="tile"><span>Monthly CTC</span><b>₹{Math.round(monthly).toLocaleString('en-IN')}</b></div>
               <div className="tile"><span>Annual fixed pay (excl. {settings.variablePayPct}% variable)</span><b>₹{fixed.toFixed(1)} L</b></div>
-              <div className="tile"><span>USD equivalent (₹{settings.fxInrPerUsd}/$)</span><b>${Math.round(usd).toLocaleString('en-US')}</b></div>
+              <div className="tile"><span>Shown in {cur.code} at {cur.code === 'INR' ? 'reference' : `₹${(settings.fxPerUsd.INR / settings.fxPerUsd[cur.code]).toFixed(2)} per ${cur.code}`}</span><b>{f(bm.ref)}</b></div>
               <div className="tile"><span>Spread (high ÷ low)</span><b>{(bm.high / bm.low).toFixed(2)}×</b></div>
               <div className="tile"><span>Market demand</span><b><DemandBars level={role.demand} /> {['', 'Low', 'Moderate', 'Steady', 'High', 'Very high'][role.demand]}</b></div>
+            </div>
+            <div className="section" style={{ marginTop: 12 }}><h4><Icon name="globe" />Same reference in other currencies</h4><p className="muted" style={{ fontSize: 12 }}>One rupee figure converted through the ECB rate table (24 September 2026), so every currency view is equivalent.</p>
+              <div className="cur-grid">{others.map((x) => <div className="tile" key={x.currency.code}><span>{x.currency.code} · {x.currency.name}</span><b>{x.label}</b></div>)}</div>
             </div>
             <div className="section" style={{ marginTop: 12 }}><h4><Icon name="wallet" />Offer guidance</h4><ul>
               <li>Offer at or below the market reference ({f(bm.ref)}) for candidates meeting the core skills.</li>

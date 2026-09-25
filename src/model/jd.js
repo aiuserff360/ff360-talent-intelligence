@@ -1,5 +1,5 @@
 // Job description generation and export.
-import { fmt } from './comp.js';
+import { fmt, unitLabel } from './comp.js';
 import { LEVELS } from '../data/roles.js';
 import { findFunction } from '../data/functions.js';
 
@@ -18,7 +18,7 @@ export function buildJd(role, bm, filters, settings, edits = {}) {
     knowledge: role.knowledge,
     preferred: role.preferred,
     education: role.education,
-    compensation: `Market reference ${fmt(bm.ref, filters.compType)} (range ${fmt(bm.low, filters.compType)} – ${fmt(bm.high, filters.compType)}); recommended hiring range ${fmt(bm.hireLow, filters.compType)} – ${fmt(bm.hireHigh, filters.compType)} ${bm.location.name} · ${bm.industry.groupName} › ${bm.industry.name}, ${settings.dataAsOf}.`,
+    compensation: `Market reference ${fmt(bm.ref, filters)} (range ${fmt(bm.low, filters)} – ${fmt(bm.high, filters)}); recommended hiring range ${fmt(bm.hireLow, filters)} – ${fmt(bm.hireHigh, filters)} (${unitLabel(filters)}) · ${bm.location.name} · ${bm.industry.groupName} › ${bm.industry.name}, ${settings.dataAsOf}.`,
     about: `Future Factor 360 partners with global organisations to build and scale capability centers in India. This role sits in the ${fn.name} function of a client center in the ${ind.name} sector and offers exposure to global stakeholders, cross-functional teams and enterprise-scale ways of working.`,
   };
   return { ...base, ...edits };
