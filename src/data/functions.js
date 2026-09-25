@@ -1,0 +1,15 @@
+// Functions in the library. `refSub` is the sub-industry each function's benchmarks are stored at.
+export const FUNCTIONS = [
+  { key: 'ai', name: 'AI & Data', icon: 'ai', enabled: true, refSub: 'saas', knowledgeLabel: 'Tools & platforms', description: 'Analytics, data engineering, data science, machine learning and AI platform roles.', anchors: ['ai-upgrad', 'ai-glassdoor-ml', 'ai-glassdoor-ds', 'ai-applied'] },
+  { key: 'ops', name: 'Operations / PMO', icon: 'ops', enabled: true, refSub: 'it-services', knowledgeLabel: 'Methods & frameworks', description: 'Project and program management, PMO, process excellence, transition and service delivery.', anchors: ['pmo-glassdoor-pm', 'pmo-glassdoor-pmo', 'pmo-upgrad', 'pmo-prothoughts'] },
+  { key: 'hr', name: 'HR / People', icon: 'hr', enabled: true, refSub: 'it-services', knowledgeLabel: 'Frameworks & compliance', description: 'Talent acquisition, HR operations, business partnering, total rewards and learning.', anchors: ['hr-keka-manager', 'hr-keka-hrbp', 'hr-glassdoor-hrbp', 'hr-manipal'] },
+  { key: 'it', name: 'IT', icon: 'monitor', enabled: true, refSub: 'it-services', knowledgeLabel: 'Technologies & certifications', description: 'End-user support, infrastructure, cloud and DevOps, cybersecurity, architecture and IT leadership.', anchors: ['it-upgrad-support', 'it-coursera-devops', 'it-coursera-cloud', 'it-wecreate'] },
+  { key: 'mfg', name: 'Manufacturing Support', icon: 'factory', enabled: true, refSub: 'medical-devices', knowledgeLabel: 'Standards & systems', description: 'Manufacturing and process engineering, planning, procurement, supply chain and maintenance.', anchors: ['mfg-glassdoor', 'mfg-payscale-production', 'mfg-insideiim-scm', 'mfg-6figr-planner'] },
+  { key: 'quality', name: 'Quality', icon: 'quality', enabled: true, refSub: 'medical-devices', knowledgeLabel: 'Standards & regulations', description: 'Quality engineering, quality systems, supplier quality, validation, audits and quality leadership.', anchors: ['quality-indeed-qa', 'quality-payscale-devices', 'quality-accio-sqe', 'quality-sprintzeal-manager'] },
+  { key: 'ra', name: 'Regulatory Affairs', icon: 'doc', enabled: true, refSub: 'medical-devices', knowledgeLabel: 'Regulatory knowledge', description: 'Submissions, registrations, technical documentation, labeling, intelligence, lifecycle and regulatory strategy.', anchors: ['glassdoor-specialist', 'glassdoor-senior-specialist', 'payscale-associate-director', 'pharmaduniya-2026'] },
+  { key: 'rd', name: 'R&D', icon: 'flask', enabled: true, refSub: 'medical-devices', knowledgeLabel: 'Standards & tools', description: 'Product design, embedded software, test and verification, research, systems engineering and R&D leadership.', anchors: ['rd-upgrad-embedded', 'rd-salaryexpert-embedded', 'rd-6figr', 'rd-resumevera'] },
+];
+
+export const findFunction = (key) => FUNCTIONS.find((f) => f.key === key) || FUNCTIONS.find((f) => f.key === 'ra');
+
+export const LEVELS = { L1: 'Associate', L2: 'Specialist', L3: 'Senior / Lead', L4: 'Manager', L5: 'Head' };

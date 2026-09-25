@@ -3,16 +3,19 @@ import { Icon } from '../components/icons.jsx';
 import { Panel, Kpi, Tabs, Chip, DemandBars, Modal, Field } from '../components/ui.jsx';
 import { GroupedColumns, HBars, BellCurve, RangeStrip } from '../components/viz.jsx';
 import { FunctionRail } from '../components/Shell.jsx';
-import { ROLES, LEVELS } from '../data/roles.js';
+import { ROLES, LEVELS, rolesFor } from '../data/roles.js';
+import { findFunction } from '../data/functions.js';
 import { SOURCES } from '../data/sources.js';
 import { benchmark, filterRoles, summary, byExperience, byFamily, fmt, unitLabel, comparables } from '../model/comp.js';
 import { buildJd, jdToText, jdToMarkdown, download, slug } from '../model/jd.js';
 
 const exp = (r) => `${r.expMin} – ${r.expMax >= 25 ? '' : r.expMax}${r.expMax >= 25 ? '15+' : ''}`.replace('15 – 15+', '15+');
 
-export function RoleLibrary({ filters, settings, selectedId, setSelectedId, jdEdits, setJdEdits, toast }) {
+export function RoleLibrary({ filters, setFilter, settings, selectedId, setSelectedId, jdEdits, setJdEdits, toast }) {
+  const fnDef = findFunction(filters.fn);
+  const pool = rolesFor(fnDef.key);
   const roles = useMemo(() => filterRoles(filters), [filters]);
-  const selected = ROLES.find((r) => r.id === selectedId) || roles[0] || ROLES[1];
+  const selected = pool.find((r) => r.id === selectedId) || roles[0] || pool[0];
   const sm = summary(roles, filters, settings);
   const bmSel = benchmark(selected, filters, settings);
   const t = filters.compType;
@@ -23,16 +26,16 @@ export function RoleLibrary({ filters, settings, selectedId, setSelectedId, jdEd
 
   return (
     <div className="workspace">
-      <FunctionRail />
+      <FunctionRail fn={fnDef.key} onSelect={(k) => setFilter('fn', k)} />
       <div className="center">
         <div className="kpis">
-          <Kpi icon="people" label="Roles in Library" value={sm.count} sub="Regulatory Affairs" />
-          <Kpi icon="chart" label="Median Compensation" value={f(sm.median)} sub={`All RA roles · ${unitLabel(t)}`} />
+          <Kpi icon="people" label="Roles in Library" value={sm.count} sub={fnDef.name} />
+          <Kpi icon="chart" label="Median Compensation" value={f(sm.median)} sub={`All ${fnDef.name} roles · ${unitLabel(t)}`} />
           <Kpi icon="trend" label="Total Compensation Range" value={`${f(sm.min)} – ${f(sm.max)}`} sub="Market low – high" />
           <Kpi icon="target" label="Recommended Hiring Range" value={`${f(bmSel.hireLow)} – ${f(bmSel.hireHigh)}`} sub={`Selected role · ${selected.title}`} />
         </div>
 
-        <Panel title="Regulatory Affairs – Role Library" subtitle={`${bmSel.location.name} · ${bmSel.industry.name} · ${unitLabel(t)} · data as of ${settings.dataAsOf}`} tight>
+        <Panel title={`${fnDef.name} – Role Library`} subtitle={`${bmSel.location.name} · ${bmSel.group.name} › ${bmSel.industry.name} · ${unitLabel(t)} · data as of ${settings.dataAsOf}`} tight>
           <div className="table-wrap">
             <table className="library-table">
               <thead>
@@ -59,7 +62,7 @@ export function RoleLibrary({ filters, settings, selectedId, setSelectedId, jdEd
         </Panel>
 
         <div className="charts">
-          <Panel title="Compensation Trend by Experience Level" subtitle="Regulatory Affairs – all roles · median of market low / reference / high per band">
+          <Panel title="Compensation Trend by Experience Level" subtitle={`${fnDef.name} – all roles · median of market low / reference / high per band`}>
             <GroupedColumns data={trend.filter((b) => b.count).map((b) => ({ label: b.band.replace(' years', '').replace(' – ', '–'), values: [b.low, b.ref, b.high] }))} series={[{ name: 'Market Low', color: '#86b6ef' }, { name: 'Market Reference', color: '#2a78d6' }, { name: 'Market High', color: '#104281' }]} format={short} yLabel={unitLabel(t)} height={250} xLabel="Experience level (years)" />
           </Panel>
           <Panel title="Market Positioning" subtitle={selected.title}>
@@ -72,12 +75,12 @@ export function RoleLibrary({ filters, settings, selectedId, setSelectedId, jdEd
         </div>
       </div>
 
-      <RoleDrawer role={selected} bm={bmSel} filters={filters} settings={settings} jdEdits={jdEdits} setJdEdits={setJdEdits} toast={toast} onSelect={setSelectedId} />
+      <RoleDrawer role={selected} bm={bmSel} fnDef={fnDef} filters={filters} settings={settings} jdEdits={jdEdits} setJdEdits={setJdEdits} toast={toast} onSelect={setSelectedId} />
     </div>
   );
 }
 
-function RoleDrawer({ role, bm, filters, settings, jdEdits, setJdEdits, toast, onSelect }) {
+function RoleDrawer({ role, bm, fnDef, filters, settings, jdEdits, setJdEdits, toast, onSelect }) {
   const [tab, setTab] = useState('details');
   const [modal, setModal] = useState(null); // 'view' | 'edit'
   const t = filters.compType;
@@ -93,10 +96,10 @@ function RoleDrawer({ role, bm, filters, settings, jdEdits, setJdEdits, toast, o
 
   return (
     <aside className="drawer">
-      <div className="drawer-head"><h2>Role Profile / Job Description</h2><span className="chip soft">{role.family}</span></div>
+      <div className="drawer-head"><h2>Role Profile / Job Description</h2><span className="chip soft">{fnDef.name}</span></div>
       <div className="drawer-body">
         <div className="role-title"><h3>{role.title}</h3><Chip>{role.level}</Chip><span className="chip soft">{LEVELS[role.level]}</span></div>
-        <div className="role-meta"><span>{role.family}</span><span>{exp(role)} Years</span><span>{bm.location.name}</span><span>{bm.industry.name}</span></div>
+        <div className="role-meta"><span>{role.family}</span><span>{exp(role)} Years</span><span>{bm.location.name}</span><span>{bm.group.name} › {bm.industry.name}</span></div>
         <div className="tiles">
           <div className="tile"><b>{f(bm.low)}</b><span>Market Low</span></div>
           <div className="tile ref"><b>{f(bm.ref)}</b><span>Market Reference</span></div>
@@ -111,14 +114,14 @@ function RoleDrawer({ role, bm, filters, settings, jdEdits, setJdEdits, toast, o
             <div className="section"><h4><Icon name="target" />Role Purpose</h4><p>{jd.summary}</p></div>
             <div className="section"><h4><Icon name="doc" />Key Responsibilities</h4><ul>{jd.responsibilities.map((x) => <li key={x}>{x}</li>)}</ul></div>
             <div className="section"><h4><Icon name="gear" />Core Skills</h4><div className="chips">{jd.skills.map((x) => <span className="chip soft" key={x}>{x}</span>)}</div></div>
-            <div className="section"><h4><Icon name="library" />Regulatory Knowledge</h4><div className="chips">{jd.knowledge.map((x) => <span className="chip" key={x}>{x}</span>)}</div></div>
+            <div className="section"><h4><Icon name="library" />{fnDef.knowledgeLabel}</h4><div className="chips">{jd.knowledge.map((x) => <span className="chip" key={x}>{x}</span>)}</div></div>
             <div className="section"><h4><Icon name="people" />Preferred Experience</h4><ul>{jd.preferred.map((x) => <li key={x}>{x}</li>)}</ul></div>
             <div className="section"><h4><Icon name="quality" />Education</h4><p>{jd.education}</p></div>
           </>
         )}
         {tab === 'comp' && (
           <>
-            <div className="section"><h4><Icon name="chart" />How this benchmark is built</h4><p>Reference market (Bengaluru · Medical devices) ₹{role.comp.low}L – ₹{role.comp.ref}L – ₹{role.comp.high}L, adjusted by location index {bm.location.index.toFixed(2)} ({bm.location.name}) and industry index {bm.industry.index.toFixed(2)} ({bm.industry.name}) = combined {bm.index.toFixed(2)}.</p></div>
+            <div className="section"><h4><Icon name="chart" />How this benchmark is built</h4><p>Reference market for {fnDef.name} is Bengaluru · {bm.refSub.name}: ₹{role.comp.low}L – ₹{role.comp.ref}L – ₹{role.comp.high}L. Adjusted by location index {bm.location.index.toFixed(2)} ({bm.location.name}) and sub-industry factor {bm.fnIndex.toFixed(2)} ({bm.industry.name} index {bm.industry.index.toFixed(2)} ÷ {bm.refSub.name} index {bm.refSub.index.toFixed(2)}) = combined {bm.index.toFixed(2)}.</p></div>
             <div className="insight-grid">
               <div className="tile"><span>Annual CTC (reference)</span><b>₹{bm.lakh.ref.toFixed(1)} L</b></div>
               <div className="tile"><span>Monthly CTC</span><b>₹{Math.round(monthly).toLocaleString('en-IN')}</b></div>
@@ -129,7 +132,7 @@ function RoleDrawer({ role, bm, filters, settings, jdEdits, setJdEdits, toast, o
             </div>
             <div className="section" style={{ marginTop: 12 }}><h4><Icon name="wallet" />Offer guidance</h4><ul>
               <li>Offer at or below the market reference ({f(bm.ref)}) for candidates meeting the core skills.</li>
-              <li>Use the upper hiring range ({f(bm.hireHigh)}) for scarce skills such as global submissions, SaMD or notified-body audit experience.</li>
+              <li>Use the upper hiring range ({f(bm.hireHigh)}) for candidates who bring the scarce experience listed under preferred experience, or who come from a higher-paying sub-industry.</li>
               <li>Above the market high ({f(bm.high)}) only with a documented business case and leadership approval.</li>
             </ul></div>
             <div className="section"><h4><Icon name="library" />Sources for this role</h4><ul>{role.anchors.map((a) => <li key={a}><a href={SOURCES[a].url} target="_blank" rel="noreferrer">{SOURCES[a].name}</a></li>)}</ul></div>
@@ -163,7 +166,7 @@ function RoleDrawer({ role, bm, filters, settings, jdEdits, setJdEdits, toast, o
           <h4>Role purpose</h4><p>{jd.summary}</p>
           <h4>Key responsibilities</h4><ul>{jd.responsibilities.map((x) => <li key={x}>{x}</li>)}</ul>
           <h4>Core skills</h4><ul>{jd.skills.map((x) => <li key={x}>{x}</li>)}</ul>
-          <h4>Regulatory knowledge</h4><ul>{jd.knowledge.map((x) => <li key={x}>{x}</li>)}</ul>
+          <h4>{jd.knowledgeLabel}</h4><ul>{jd.knowledge.map((x) => <li key={x}>{x}</li>)}</ul>
           <h4>Preferred experience</h4><ul>{jd.preferred.map((x) => <li key={x}>{x}</li>)}</ul>
           <h4>Education</h4><p>{jd.education}</p>
           <h4>Compensation guidance (internal)</h4><p>{jd.compensation}</p>
@@ -190,7 +193,7 @@ function JdEditor({ jd, onSave, onReset }) {
       <Field label="Role purpose"><textarea value={d.summary} onChange={set('summary')} /></Field>
       <Field label="Key responsibilities" hint="One per line"><textarea value={d.responsibilities} onChange={set('responsibilities')} style={{ minHeight: 140 }} /></Field>
       <Field label="Core skills" hint="Comma separated"><input value={d.skills} onChange={set('skills')} /></Field>
-      <Field label="Regulatory knowledge" hint="Comma separated"><input value={d.knowledge} onChange={set('knowledge')} /></Field>
+      <Field label={jd.knowledgeLabel} hint="Comma separated"><input value={d.knowledge} onChange={set('knowledge')} /></Field>
       <Field label="Preferred experience" hint="One per line"><textarea value={d.preferred} onChange={set('preferred')} /></Field>
       <Field label="Education"><input value={d.education} onChange={set('education')} /></Field>
       <div className="inline"><button type="button" className="btn primary" onClick={() => onSave({ title: d.title, about: d.about, summary: d.summary, responsibilities: lines(d.responsibilities), skills: list(d.skills), knowledge: list(d.knowledge), preferred: lines(d.preferred), education: d.education })}><Icon name="check" />Save JD</button><button type="button" className="btn" onClick={onReset}><Icon name="reset" />Reset to template</button></div>

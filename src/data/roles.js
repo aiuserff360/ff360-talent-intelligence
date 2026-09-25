@@ -12,29 +12,18 @@
 //  - Associate Director: Payscale avg ₹24.6L (₹4–70L), experienced avg ₹35L (₹20–70L); Director avg ₹61L
 //  - Career bands: freshers ₹3–7L, associates 2–5 yrs ₹8–12L, senior managers ₹12–18L, senior leadership ₹30–50L (Pharmaduniya 2026)
 
-export const FUNCTIONS = [
-  { key: 'ai', name: 'AI & Data', icon: 'ai', enabled: false },
-  { key: 'ops', name: 'Operations / PMO', icon: 'ops', enabled: false },
-  { key: 'hr', name: 'HR / People', icon: 'hr', enabled: false },
-  { key: 'it', name: 'IT', icon: 'monitor', enabled: false },
-  { key: 'mfg', name: 'Manufacturing Support', icon: 'factory', enabled: false },
-  { key: 'quality', name: 'Quality', icon: 'quality', enabled: false },
-  { key: 'ra', name: 'Regulatory Affairs', icon: 'doc', enabled: true },
-  { key: 'rd', name: 'R&D', icon: 'flask', enabled: false },
-];
+export { FUNCTIONS, LEVELS } from './functions.js';
 
-export const LEVELS = { L1: 'Associate', L2: 'Specialist', L3: 'Senior / Lead', L4: 'Manager', L5: 'Head' };
-
-export const FAMILIES = [
+export const FAMILIES_RA = [
   'Regulatory Operations', 'Global Submissions', 'Product Registration', 'Technical Documentation',
   'Labeling', 'Regulatory Intelligence', 'Regulatory Lifecycle', 'Regulatory Strategy',
 ];
 
 // Market demand 1–5, from open-role counts and hiring commentary (Naukri ~180 specialist roles, Indeed ~300 device RA roles,
 // LinkedIn ~720 RA roles in India, MedTech hiring +20%, RA job growth ~10% a year; see sources.js).
-export const ROLES = [
+export const ROLES_RA = [
   {
-    id: 'ra-associate', title: 'Regulatory Affairs Associate', family: 'Regulatory Operations', level: 'L1', expMin: 0, expMax: 3,
+    fn: 'ra', id: 'ra-associate', title: 'Regulatory Affairs Associate', family: 'Regulatory Operations', level: 'L1', expMin: 0, expMax: 3,
     comp: { low: 4.0, ref: 5.5, high: 7.5 }, demand: 4,
     anchors: ['glassdoor-associate', 'payscale-associate-devices', 'pharmaduniya-2026'],
     purpose: 'Support the regulatory team with submission preparation, document control and tracking of registrations and licence renewals for medical-device products.',
@@ -53,7 +42,7 @@ export const ROLES = [
     comparables: ['Regulatory Affairs Executive', 'Regulatory Affairs Trainee', 'Regulatory Coordinator', 'Documentation Executive'],
   },
   {
-    id: 'ra-specialist', title: 'Regulatory Affairs Specialist', family: 'Regulatory Operations', level: 'L2', expMin: 3, expMax: 6,
+    fn: 'ra', id: 'ra-specialist', title: 'Regulatory Affairs Specialist', family: 'Regulatory Operations', level: 'L2', expMin: 3, expMax: 6,
     comp: { low: 6.0, ref: 9.0, high: 12.0 }, demand: 5,
     anchors: ['glassdoor-specialist', 'glassdoor-specialist-hyderabad', 'payscale-specialist-devices', 'indeed-specialist'],
     purpose: 'Support regulatory submissions, product registrations and lifecycle compliance for medical-device products across applicable markets.',
@@ -73,7 +62,7 @@ export const ROLES = [
     comparables: ['Regulatory Affairs Executive (Senior)', 'Regulatory Affairs Officer', 'Regulatory Compliance Specialist', 'Regulatory Affairs Consultant'],
   },
   {
-    id: 'reg-submissions-specialist', title: 'Regulatory Submissions Specialist', family: 'Global Submissions', level: 'L2', expMin: 3, expMax: 6,
+    fn: 'ra', id: 'reg-submissions-specialist', title: 'Regulatory Submissions Specialist', family: 'Global Submissions', level: 'L2', expMin: 3, expMax: 6,
     comp: { low: 6.5, ref: 9.5, high: 13.0 }, demand: 4,
     anchors: ['glassdoor-specialist', 'indeed-submissions', 'payscale-specialist-devices'],
     purpose: 'Own the assembly, publishing and dispatch of regulatory submissions (510(k), technical files, CE dossiers, CDSCO applications) to global health authorities.',
@@ -92,7 +81,7 @@ export const ROLES = [
     comparables: ['Regulatory Publishing Specialist', 'Regulatory Operations Specialist', 'Submissions Coordinator', 'eCTD Specialist'],
   },
   {
-    id: 'product-registration-specialist', title: 'Product Registration Specialist', family: 'Product Registration', level: 'L2', expMin: 3, expMax: 6,
+    fn: 'ra', id: 'product-registration-specialist', title: 'Product Registration Specialist', family: 'Product Registration', level: 'L2', expMin: 3, expMax: 6,
     comp: { low: 6.0, ref: 9.5, high: 12.5 }, demand: 4,
     anchors: ['glassdoor-specialist', 'payscale-specialist-devices'],
     purpose: 'Register and maintain product licences across international markets, working with distributors, in-country representatives and health authorities.',
@@ -111,7 +100,7 @@ export const ROLES = [
     comparables: ['International Regulatory Specialist', 'Regulatory Affairs Specialist – Emerging Markets', 'Licensing Specialist'],
   },
   {
-    id: 'reg-documentation-specialist', title: 'Regulatory Documentation Specialist', family: 'Technical Documentation', level: 'L2', expMin: 3, expMax: 6,
+    fn: 'ra', id: 'reg-documentation-specialist', title: 'Regulatory Documentation Specialist', family: 'Technical Documentation', level: 'L2', expMin: 3, expMax: 6,
     comp: { low: 5.5, ref: 8.0, high: 11.0 }, demand: 3,
     anchors: ['salarycom-labeling', 'glassdoor-specialist'],
     purpose: 'Author and control the technical documentation that underpins device compliance: technical files, design history files, risk management files and clinical evaluation reports.',
@@ -130,7 +119,7 @@ export const ROLES = [
     comparables: ['Technical Writer – Regulatory', 'Design Documentation Specialist', 'Technical File Specialist'],
   },
   {
-    id: 'reg-labeling-specialist', title: 'Regulatory Labeling Specialist', family: 'Labeling', level: 'L2', expMin: 3, expMax: 6,
+    fn: 'ra', id: 'reg-labeling-specialist', title: 'Regulatory Labeling Specialist', family: 'Labeling', level: 'L2', expMin: 3, expMax: 6,
     comp: { low: 6.0, ref: 8.5, high: 11.5 }, demand: 3,
     anchors: ['salarycom-labeling', 'glassdoor-labeling-manager'],
     purpose: 'Ensure device labels, IFUs and packaging artwork meet the requirements of every market in which products are sold, including UDI and symbol compliance.',
@@ -149,7 +138,7 @@ export const ROLES = [
     comparables: ['Labeling Compliance Specialist', 'Artwork Regulatory Reviewer', 'UDI Specialist'],
   },
   {
-    id: 'reg-intelligence-analyst', title: 'Regulatory Intelligence Analyst', family: 'Regulatory Intelligence', level: 'L2', expMin: 3, expMax: 6,
+    fn: 'ra', id: 'reg-intelligence-analyst', title: 'Regulatory Intelligence Analyst', family: 'Regulatory Intelligence', level: 'L2', expMin: 3, expMax: 6,
     comp: { low: 7.0, ref: 10.0, high: 13.0 }, demand: 3,
     anchors: ['salaryexpert-intelligence', 'glassdoor-specialist'],
     purpose: 'Monitor, analyse and communicate regulatory developments across global markets so that product, quality and commercial teams can act early.',
@@ -168,7 +157,7 @@ export const ROLES = [
     comparables: ['Regulatory Analyst', 'Regulatory Policy Analyst', 'Market Access Analyst'],
   },
   {
-    id: 'senior-ra-specialist', title: 'Senior RA Specialist', family: 'Regulatory Operations', level: 'L3', expMin: 6, expMax: 9,
+    fn: 'ra', id: 'senior-ra-specialist', title: 'Senior RA Specialist', family: 'Regulatory Operations', level: 'L3', expMin: 6, expMax: 9,
     comp: { low: 11.0, ref: 14.5, high: 18.0 }, demand: 4,
     anchors: ['glassdoor-senior-specialist', 'salaryexpert-specialist'],
     purpose: 'Lead regulatory submissions and strategy for a product line, mentor specialists and act as the regulatory representative on cross-functional teams.',
@@ -187,7 +176,7 @@ export const ROLES = [
     comparables: ['Senior Regulatory Affairs Specialist', 'Regulatory Affairs Lead', 'Principal RA Specialist'],
   },
   {
-    id: 'reg-change-specialist', title: 'Regulatory Change Specialist', family: 'Regulatory Lifecycle', level: 'L3', expMin: 5, expMax: 8,
+    fn: 'ra', id: 'reg-change-specialist', title: 'Regulatory Change Specialist', family: 'Regulatory Lifecycle', level: 'L3', expMin: 5, expMax: 8,
     comp: { low: 9.0, ref: 12.5, high: 16.0 }, demand: 3,
     anchors: ['glassdoor-senior-specialist', 'glassdoor-specialist'],
     purpose: 'Assess every product, process and supplier change for regulatory impact and manage the resulting notifications, letters-to-file and re-submissions across markets.',
@@ -206,7 +195,7 @@ export const ROLES = [
     comparables: ['Regulatory Lifecycle Specialist', 'Post-market Regulatory Specialist', 'Change Control Regulatory Lead'],
   },
   {
-    id: 'technical-documentation-lead', title: 'Technical Documentation Lead', family: 'Technical Documentation', level: 'L3', expMin: 6, expMax: 10,
+    fn: 'ra', id: 'technical-documentation-lead', title: 'Technical Documentation Lead', family: 'Technical Documentation', level: 'L3', expMin: 6, expMax: 10,
     comp: { low: 11.0, ref: 14.5, high: 18.0 }, demand: 3,
     anchors: ['glassdoor-senior-specialist', 'salarycom-labeling'],
     purpose: 'Lead the technical documentation function, owning documentation standards, remediation programs and audit readiness across the device portfolio.',
@@ -225,7 +214,7 @@ export const ROLES = [
     comparables: ['Technical File Lead', 'Design Documentation Manager', 'Regulatory Documentation Manager'],
   },
   {
-    id: 'global-registration-lead', title: 'Global Registration Lead', family: 'Product Registration', level: 'L3', expMin: 7, expMax: 12,
+    fn: 'ra', id: 'global-registration-lead', title: 'Global Registration Lead', family: 'Product Registration', level: 'L3', expMin: 7, expMax: 12,
     comp: { low: 14.0, ref: 18.0, high: 23.0 }, demand: 4,
     anchors: ['glassdoor-senior-manager', 'glassdoor-senior-specialist'],
     purpose: 'Own the global registration roadmap for the product portfolio, prioritising markets, managing in-country partners and delivering approvals to plan.',
@@ -244,7 +233,7 @@ export const ROLES = [
     comparables: ['International Regulatory Lead', 'Regulatory Affairs Lead – Emerging Markets', 'Global Licensing Manager'],
   },
   {
-    id: 'reg-lifecycle-lead', title: 'Regulatory Lifecycle Lead', family: 'Regulatory Lifecycle', level: 'L3', expMin: 7, expMax: 12,
+    fn: 'ra', id: 'reg-lifecycle-lead', title: 'Regulatory Lifecycle Lead', family: 'Regulatory Lifecycle', level: 'L3', expMin: 7, expMax: 12,
     comp: { low: 14.0, ref: 18.5, high: 24.0 }, demand: 3,
     anchors: ['glassdoor-senior-manager', 'glassdoor-senior-specialist'],
     purpose: 'Lead post-market regulatory activity for the portfolio: change management, renewals, periodic reports and regulatory aspects of vigilance and field actions.',
@@ -263,7 +252,7 @@ export const ROLES = [
     comparables: ['Post-market Regulatory Lead', 'Regulatory Compliance Lead', 'Lifecycle Management Lead'],
   },
   {
-    id: 'reg-intelligence-lead', title: 'Regulatory Intelligence Lead', family: 'Regulatory Intelligence', level: 'L3', expMin: 7, expMax: 12,
+    fn: 'ra', id: 'reg-intelligence-lead', title: 'Regulatory Intelligence Lead', family: 'Regulatory Intelligence', level: 'L3', expMin: 7, expMax: 12,
     comp: { low: 14.0, ref: 19.0, high: 25.0 }, demand: 3,
     anchors: ['salaryexpert-intelligence', 'glassdoor-senior-manager'],
     purpose: 'Lead the regulatory intelligence and policy function, shaping regulatory strategy with insight into emerging requirements and engaging with industry bodies.',
@@ -282,7 +271,7 @@ export const ROLES = [
     comparables: ['Regulatory Policy Lead', 'Regulatory Strategy Lead', 'Head of Regulatory Intelligence'],
   },
   {
-    id: 'ra-manager', title: 'Regulatory Affairs Manager', family: 'Regulatory Strategy', level: 'L4', expMin: 9, expMax: 13,
+    fn: 'ra', id: 'ra-manager', title: 'Regulatory Affairs Manager', family: 'Regulatory Strategy', level: 'L4', expMin: 9, expMax: 13,
     comp: { low: 16.0, ref: 22.0, high: 30.0 }, demand: 4,
     anchors: ['glassdoor-senior-manager', 'payscale-manager', 'pharmaduniya-2026'],
     purpose: 'Manage the regulatory affairs team and strategy for a business unit, delivering approvals, compliance and agency relationships that enable growth.',
@@ -301,7 +290,7 @@ export const ROLES = [
     comparables: ['Manager – Regulatory Affairs', 'Regulatory Affairs Lead (People Manager)', 'Regulatory Program Manager'],
   },
   {
-    id: 'senior-ra-manager', title: 'Senior RA Manager', family: 'Regulatory Strategy', level: 'L4', expMin: 12, expMax: 16,
+    fn: 'ra', id: 'senior-ra-manager', title: 'Senior RA Manager', family: 'Regulatory Strategy', level: 'L4', expMin: 12, expMax: 16,
     comp: { low: 22.0, ref: 30.0, high: 38.0 }, demand: 3,
     anchors: ['payscale-associate-director', 'glassdoor-senior-manager', 'pharmaduniya-2026'],
     purpose: 'Lead regulatory affairs across multiple product lines or regions, owning global strategy, senior agency relationships and the development of regulatory leaders.',
@@ -320,7 +309,7 @@ export const ROLES = [
     comparables: ['Associate Director – Regulatory Affairs', 'Regulatory Affairs Senior Manager', 'Regional Regulatory Head'],
   },
   {
-    id: 'associate-director-ra-head', title: 'Associate Director / RA Head', family: 'Regulatory Strategy', level: 'L5', expMin: 15, expMax: 25,
+    fn: 'ra', id: 'associate-director-ra-head', title: 'Associate Director / RA Head', family: 'Regulatory Strategy', level: 'L5', expMin: 15, expMax: 25,
     comp: { low: 32.0, ref: 42.0, high: 55.0 }, demand: 2,
     anchors: ['payscale-associate-director', 'glassdoor-director', 'pharmaduniya-2026'],
     purpose: 'Head the regulatory affairs function for the India center: strategy, organisation, agency relationships and the regulatory contribution to business growth and compliance.',
@@ -339,3 +328,16 @@ export const ROLES = [
     comparables: ['Director – Regulatory Affairs', 'Head of Regulatory Affairs India', 'VP Regulatory Affairs (smaller organisations)'],
   },
 ];
+
+import { ROLES_AI } from './roles-ai.js';
+import { ROLES_OPS } from './roles-ops.js';
+import { ROLES_HR } from './roles-hr.js';
+import { ROLES_IT } from './roles-it.js';
+import { ROLES_MFG } from './roles-mfg.js';
+import { ROLES_QUALITY } from './roles-quality.js';
+import { ROLES_RD } from './roles-rd.js';
+
+// Combined catalogue across every function.
+export const ROLES = [...ROLES_AI, ...ROLES_OPS, ...ROLES_HR, ...ROLES_IT, ...ROLES_MFG, ...ROLES_QUALITY, ...ROLES_RA, ...ROLES_RD];
+export const rolesFor = (fn) => ROLES.filter((r) => r.fn === fn);
+export const familiesFor = (fn) => [...new Set(rolesFor(fn).map((r) => r.family))];

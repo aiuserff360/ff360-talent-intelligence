@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Icon } from './icons.jsx';
 import { Select } from './ui.jsx';
-import { FUNCTIONS } from '../data/roles.js';
-import { LOCATIONS, INDUSTRIES, COMP_TYPES, EXPERIENCE_LEVELS } from '../data/market.js';
+import { FUNCTIONS } from '../data/functions.js';
+import { INDUSTRY_GROUPS, groupOfSub } from '../data/industries.js';
+import { LOCATIONS, COMP_TYPES, EXPERIENCE_LEVELS } from '../data/market.js';
 
 export const NAV = [['home', 'Home', 'home'], ['dashboard', 'Dashboard', 'chart'], ['library', 'Role Library', 'library'], ['reports', 'Reports', 'doc'], ['settings', 'Settings', 'gear']];
 
@@ -22,24 +23,28 @@ export function Header({ page, go }) {
   );
 }
 
+// Industry is two-level: pick the industry group, then a sub-industry inside it. Only the sub-industry key is stored
+// (filters.industry); the group is derived from it, and changing the group jumps to that group's first sub-industry.
 export function Filters({ filters, setFilter }) {
+  const group = groupOfSub(filters.industry);
   return (
     <div className="filters">
-      <Select label="Function" value="ra" onChange={() => {}} options={FUNCTIONS.map((f) => ({ value: f.key, label: f.enabled ? f.name : `${f.name} (coming soon)`, disabled: !f.enabled }))} />
+      <Select label="Function" value={filters.fn} onChange={(v) => setFilter('fn', v)} options={FUNCTIONS.map((f) => ({ value: f.key, label: f.name }))} />
       <Select label="Location" value={filters.location} onChange={(v) => setFilter('location', v)} options={LOCATIONS.map((l) => ({ value: l.key, label: l.name }))} />
-      <Select label="Industry" value={filters.industry} onChange={(v) => setFilter('industry', v)} options={INDUSTRIES.map((i) => ({ value: i.key, label: i.name }))} />
+      <Select label="Industry" value={group.key} onChange={(v) => setFilter('industry', INDUSTRY_GROUPS.find((g) => g.key === v).subs[0].key)} options={INDUSTRY_GROUPS.map((g) => ({ value: g.key, label: g.name }))} />
+      <Select label="Sub-industry" value={filters.industry} onChange={(v) => setFilter('industry', v)} options={group.subs.map((s) => ({ value: s.key, label: s.name }))} />
       <Select label="Compensation Type" value={filters.compType} onChange={(v) => setFilter('compType', v)} options={COMP_TYPES.map((c) => ({ value: c.key, label: c.name }))} />
       <Select label="Experience Level" value={filters.experience} onChange={(v) => setFilter('experience', v)} options={EXPERIENCE_LEVELS.map((e) => ({ value: e.key, label: e.name }))} />
     </div>
   );
 }
 
-export function FunctionRail() {
+export function FunctionRail({ fn, onSelect }) {
   return (
     <aside className="rail">
       {FUNCTIONS.map((f) => (
-        <button type="button" key={f.key} className={f.enabled ? 'on' : ''} disabled={!f.enabled} title={f.enabled ? f.name : 'Coming soon'}>
-          <Icon name={f.icon} /><span>{f.name}{!f.enabled && <small>Coming soon</small>}</span>
+        <button type="button" key={f.key} className={fn === f.key ? 'on' : ''} title={f.description} onClick={() => onSelect(f.key)}>
+          <Icon name={f.icon} /><span>{f.name}</span>
         </button>
       ))}
     </aside>

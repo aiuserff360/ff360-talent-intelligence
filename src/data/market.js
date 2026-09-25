@@ -14,18 +14,6 @@ export const LOCATIONS = [
   { key: 'kolkata', name: 'Kolkata', index: 0.84, tier: 2, cluster: 'Smaller life-sciences base; limited device RA talent', note: 'Tier-2 differential; limited senior RA supply.' },
 ];
 
-export const INDUSTRIES = [
-  { key: 'medical-devices', name: 'Medical Devices', index: 1.00, note: 'Reference industry. FDA 510(k), EU MDR and CDSCO MDR expertise.' },
-  { key: 'pharma', name: 'Pharmaceuticals (Generics)', index: 0.95, note: 'Domestic generics pay slightly below devices for equivalent experience; MNC pharma at or above.' },
-  { key: 'biotech', name: 'Biotech & Biosimilars', index: 1.05, note: 'Strategic, broader RA scope and scarcer biologics expertise command a premium.' },
-  { key: 'ivd', name: 'In-vitro Diagnostics', index: 0.98, note: 'Close to devices; IVDR transition keeps demand high.' },
-  { key: 'cro', name: 'CRO & Regulatory Services', index: 0.92, note: 'Service providers pay below product companies but hire in volume; MNC CROs at the top of the band.' },
-  { key: 'consumer-health', name: 'Consumer Health & OTC', index: 0.92, note: 'Simpler dossiers and domestic focus; pay slightly below devices.' },
-  { key: 'nutraceuticals', name: 'Nutraceuticals & Food', index: 0.85, note: 'FSSAI-led frameworks; smaller companies and lower pay bands.' },
-  { key: 'digital-health', name: 'Digital Health & SaMD', index: 1.10, note: 'Scarce software-as-medical-device (IEC 62304, FDA digital health) expertise earns a premium.' },
-  { key: 'agrochem', name: 'Agrochemicals & Specialty Chemicals', index: 0.90, note: 'CIB&RC and REACH-style registrations; adjacent talent pool with lower bands.' },
-];
-
 export const COMP_TYPES = [
   { key: 'ctc-annual', name: 'Annual CTC (INR)', unit: '₹ Lakh / year' },
   { key: 'ctc-monthly', name: 'Monthly CTC (INR)', unit: '₹ / month' },

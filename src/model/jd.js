@@ -1,23 +1,25 @@
 // Job description generation and export.
 import { fmt } from './comp.js';
 import { LEVELS } from '../data/roles.js';
+import { findFunction } from '../data/functions.js';
 
 const lines = (arr, bullet = '•') => arr.map((x) => `${bullet} ${x}`).join('\n');
 
 // Full JD as structured sections; `edits` (from Edit JD) override generated sections.
 export function buildJd(role, bm, filters, settings, edits = {}) {
-  const loc = bm.location; const ind = bm.industry;
+  const loc = bm.location; const ind = bm.industry; const fn = findFunction(role.fn);
   const base = {
     title: role.title,
-    meta: `${LEVELS[role.level]} (${role.level}) · ${role.family} · ${role.expMin}–${role.expMax === 99 ? '+' : role.expMax} years · ${loc.name} · ${ind.name}`,
+    meta: `${LEVELS[role.level]} (${role.level}) · ${role.family} · ${role.expMin}–${role.expMax === 99 ? '+' : role.expMax} years · ${loc.name} · ${ind.groupName} › ${ind.name}`,
+    knowledgeLabel: fn.knowledgeLabel,
     summary: role.purpose,
     responsibilities: role.responsibilities,
     skills: role.skills,
     knowledge: role.knowledge,
     preferred: role.preferred,
     education: role.education,
-    compensation: `Market reference ${fmt(bm.ref, filters.compType)} (range ${fmt(bm.low, filters.compType)} – ${fmt(bm.high, filters.compType)}); recommended hiring range ${fmt(bm.hireLow, filters.compType)} – ${fmt(bm.hireHigh, filters.compType)} ${bm.location.name} · ${bm.industry.name}, ${settings.dataAsOf}.`,
-    about: 'Future Factor 360 partners with global organisations to build and scale capability centers in India. This role sits in the Regulatory Affairs function of a client center and offers exposure to global regulatory strategy, cross-functional product teams and multi-market submissions.',
+    compensation: `Market reference ${fmt(bm.ref, filters.compType)} (range ${fmt(bm.low, filters.compType)} – ${fmt(bm.high, filters.compType)}); recommended hiring range ${fmt(bm.hireLow, filters.compType)} – ${fmt(bm.hireHigh, filters.compType)} ${bm.location.name} · ${bm.industry.groupName} › ${bm.industry.name}, ${settings.dataAsOf}.`,
+    about: `Future Factor 360 partners with global organisations to build and scale capability centers in India. This role sits in the ${fn.name} function of a client center in the ${ind.name} sector and offers exposure to global stakeholders, cross-functional teams and enterprise-scale ways of working.`,
   };
   return { ...base, ...edits };
 }
@@ -29,7 +31,7 @@ export function jdToText(jd) {
     'ROLE PURPOSE', jd.summary, '',
     'KEY RESPONSIBILITIES', lines(jd.responsibilities), '',
     'CORE SKILLS', lines(jd.skills), '',
-    'REGULATORY KNOWLEDGE', lines(jd.knowledge), '',
+    (jd.knowledgeLabel || 'Domain knowledge').toUpperCase(), lines(jd.knowledge), '',
     'PREFERRED EXPERIENCE', lines(jd.preferred), '',
     'EDUCATION', jd.education, '',
     'COMPENSATION GUIDANCE (INTERNAL)', jd.compensation, '',
@@ -44,7 +46,7 @@ export function jdToMarkdown(jd) {
     '## Role purpose', jd.summary, '',
     '## Key responsibilities', lines(jd.responsibilities, '-'), '',
     '## Core skills', lines(jd.skills, '-'), '',
-    '## Regulatory knowledge', lines(jd.knowledge, '-'), '',
+    `## ${jd.knowledgeLabel || 'Domain knowledge'}`, lines(jd.knowledge, '-'), '',
     '## Preferred experience', lines(jd.preferred, '-'), '',
     '## Education', jd.education, '',
     '## Compensation guidance (internal)', jd.compensation, '',
