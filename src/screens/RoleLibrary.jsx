@@ -60,14 +60,14 @@ export function RoleLibrary({ filters, settings, selectedId, setSelectedId, jdEd
 
         <div className="charts">
           <Panel title="Compensation Trend by Experience Level" subtitle="Regulatory Affairs – all roles · median of market low / reference / high per band">
-            <GroupedColumns data={trend.filter((b) => b.count).map((b) => ({ label: b.band, values: [b.low, b.ref, b.high] }))} series={[{ name: 'Market Low', color: '#86b6ef' }, { name: 'Market Reference', color: '#2a78d6' }, { name: 'Market High', color: '#104281' }]} format={short} yLabel={unitLabel(t)} height={250} />
-          </Panel>
-          <Panel title="Compensation by Role Family" subtitle="Median market reference">
-            <HBars data={fam.map((x) => ({ label: x.family, value: x.ref }))} format={f} />
+            <GroupedColumns data={trend.filter((b) => b.count).map((b) => ({ label: b.band.replace(' years', '').replace(' – ', '–'), values: [b.low, b.ref, b.high] }))} series={[{ name: 'Market Low', color: '#86b6ef' }, { name: 'Market Reference', color: '#2a78d6' }, { name: 'Market High', color: '#104281' }]} format={short} yLabel={unitLabel(t)} height={250} xLabel="Experience level (years)" />
           </Panel>
           <Panel title="Market Positioning" subtitle={selected.title}>
             <BellCurve low={bmSel.low} ref={bmSel.ref} high={bmSel.high} format={f} height={170} />
             <RangeStrip low={bmSel.low} ref={bmSel.ref} high={bmSel.high} hireLow={bmSel.hireLow} hireHigh={bmSel.hireHigh} format={f} />
+          </Panel>
+          <Panel title="Compensation by Role Family" subtitle="Median market reference across the family's roles" className="span">
+            <HBars data={fam.map((x) => ({ label: x.family, value: x.ref }))} format={f} rowH={24} />
           </Panel>
         </div>
       </div>

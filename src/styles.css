@@ -85,7 +85,8 @@ td.ref { font-weight: 700; color: var(--navy); }
 .demand i.on { background: var(--blue); }
 .icon-btn { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; color: var(--blue-deep); }
 .icon-btn:hover { background: var(--blue-soft); }
-.charts { display: grid; grid-template-columns: 1.3fr 0.9fr 0.9fr; gap: 16px; }
+.charts { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 16px; }
+.charts .span { grid-column: 1 / -1; }
 .chart { position: relative; width: 100%; min-width: 0; }
 .chart > svg { max-width: 100%; }
 .chart .axis-text { fill: var(--muted); font-size: 11px; font-family: var(--font); }
