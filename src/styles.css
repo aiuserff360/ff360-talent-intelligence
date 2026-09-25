@@ -226,3 +226,5 @@ td.ref { font-weight: 700; color: var(--navy); }
 .library-table th, .library-table td { padding-left: 8px; padding-right: 8px; }
 .library-table td.num, .library-table th.num { white-space: nowrap; }
 .library-table td.num { font-size: 12.5px; letter-spacing: -0.01em; }
+.library-table.wide td:nth-child(2) { white-space: normal; font-size: 12.5px; }
+.library-table.wide th, .library-table.wide td { padding-left: 6px; padding-right: 6px; }

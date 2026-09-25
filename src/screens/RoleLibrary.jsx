@@ -38,7 +38,7 @@ export function RoleLibrary({ filters, setFilter, settings, selectedId, setSelec
 
         <Panel title={`${fnDef.name} – Role Library`} subtitle={`${bmSel.location.name} · ${bmSel.group.name} › ${bmSel.industry.name} · ${unitLabel(t)} · data as of ${settings.dataAsOf}`} tight>
           <div className="table-wrap">
-            <table className="library-table">
+            <table className={`library-table ${f(sm.max).length > 9 ? 'wide' : ''}`}>
               <thead>
                 <tr><th rowSpan={2}>Role Title</th><th rowSpan={2}>Role Family</th><th rowSpan={2} className="num">Exp. (Years)</th><th colSpan={3} className="group">Compensation ({unitLabel(t)})</th><th rowSpan={2}>Demand</th></tr>
                 <tr><th className="num">Market Low</th><th className="num">Market Reference</th><th className="num">Market High</th></tr>
